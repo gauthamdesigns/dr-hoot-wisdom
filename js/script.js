@@ -45,12 +45,27 @@ async function updateAdvice() {
     adviceText.textContent = `"${advice}"`;
 }
 
+// Initialize everything when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing...');
+    
+    // Update time immediately
+    updateTimeAndTheme();
+    
+    // Set up interval for time updates
+    const timeInterval = setInterval(updateTimeAndTheme, 1000);
+    console.log('Time update interval set');
+    
+    // Initialize the page
+    initialize();
+});
+
 // Initialize advice
 async function initialize() {
     // Load any saved advice first
     adviceGenerator.loadFromLocalStorage();
     
-    // Only update if we need to
+    // Only update if we need to (once per day)
     if (adviceGenerator.shouldUpdate()) {
         await updateAdvice();
     } else if (adviceGenerator.currentAdvice) {
@@ -72,26 +87,6 @@ async function initialize() {
         this.src = '/images/Dr.hoot%20asleep.png';
     };
 }
-
-// Initialize everything when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
-    
-    // Update time immediately
-    updateTimeAndTheme();
-    
-    // Set up interval for time updates
-    const timeInterval = setInterval(updateTimeAndTheme, 1000);
-    console.log('Time update interval set');
-    
-    // Check advice update once per hour
-    checkAndUpdateAdvice();
-    const adviceInterval = setInterval(checkAndUpdateAdvice, 3600000);
-    console.log('Advice update interval set');
-    
-    // Initialize the page
-    initialize();
-});
 
 // Share functionality
 const shareButton = document.getElementById('shareButton');

@@ -59,11 +59,10 @@ class AdviceGenerator {
         const now = new Date();
         const lastUpdate = new Date(this.lastUpdateTime);
         
-        // Check if it's a new day and past 2 AM
-        const isNewDay = now.getDate() !== lastUpdate.getDate();
-        const isPast2AM = now.getHours() >= 2;
-        
-        return isNewDay && isPast2AM;
+        // Only update if it's a new day
+        return now.getDate() !== lastUpdate.getDate() || 
+               now.getMonth() !== lastUpdate.getMonth() || 
+               now.getFullYear() !== lastUpdate.getFullYear();
     }
 }
 
