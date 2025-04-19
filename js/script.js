@@ -21,8 +21,10 @@ function updateTimeAndTheme() {
     const hour12 = hour % 12 || 12;
     const minutesStr = minutes.toString().padStart(2, '0');
     timeDisplay.textContent = `${hour12}:${minutesStr} ${ampm}`;
+}
 
-    // Check if advice needs to be updated
+// Function to check and update advice
+function checkAndUpdateAdvice() {
     if (adviceGenerator.shouldUpdate()) {
         updateAdvice();
     }
@@ -37,17 +39,39 @@ async function updateAdvice() {
 
 // Initialize advice
 async function initialize() {
+    // Load any saved advice first
     adviceGenerator.loadFromLocalStorage();
-    if (adviceGenerator.currentAdvice) {
+    
+    // Only update if we need to
+    if (adviceGenerator.shouldUpdate()) {
+        await updateAdvice();
+    } else if (adviceGenerator.currentAdvice) {
+        // If we have saved advice and don't need to update, use it
         document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
     } else {
+        // If we have no advice at all, generate some
         await updateAdvice();
     }
+
+    // Check if owl image loaded successfully
+    const owlImage = document.getElementById('owlImage');
+    owlImage.onload = function() {
+        console.log('Owl image loaded successfully');
+    };
+    owlImage.onerror = function() {
+        console.error('Failed to load owl image');
+        console.log('Attempting to load fallback image');
+        this.src = 'images/Dr.hoot%20asleep.png';
+    };
 }
 
 // Update time and theme immediately and then every second
 updateTimeAndTheme();
 setInterval(updateTimeAndTheme, 1000);
+
+// Check advice update once per hour instead of every minute
+checkAndUpdateAdvice();
+setInterval(checkAndUpdateAdvice, 3600000); // 1 hour in milliseconds
 
 // Initialize the page
 initialize();

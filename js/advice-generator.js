@@ -1,37 +1,16 @@
-import config from './config.js';
-
 class AdviceGenerator {
     constructor() {
-        this.apiKey = config.OPENAI_API_KEY;
         this.lastUpdateTime = null;
         this.currentAdvice = null;
     }
 
     async generateAdvice() {
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "gpt-3.5-turbo",
-                    messages: [{
-                        role: "system",
-                        content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
-                    }, {
-                        role: "user",
-                        content: "Give me one piece of life advice."
-                    }],
-                    max_tokens: 50,
-                    temperature: 0.8
-                })
-            });
-
+            const response = await fetch('/api/generate-advice');
             const data = await response.json();
-            if (data.choices && data.choices[0]) {
-                this.currentAdvice = data.choices[0].message.content.trim();
+            
+            if (data.advice) {
+                this.currentAdvice = data.advice;
                 this.lastUpdateTime = new Date();
                 this.saveToLocalStorage();
                 return this.currentAdvice;
@@ -71,13 +50,20 @@ class AdviceGenerator {
     }
 
     shouldUpdate() {
+        // If we don't have any advice yet, we need to generate it
+        if (!this.currentAdvice) return true;
+        
+        // If we don't have a last update time, we need to generate new advice
         if (!this.lastUpdateTime) return true;
         
         const now = new Date();
         const lastUpdate = new Date(this.lastUpdateTime);
         
         // Check if it's a new day and past 2 AM
-        return now.getDate() !== lastUpdate.getDate() && now.getHours() >= 2;
+        const isNewDay = now.getDate() !== lastUpdate.getDate();
+        const isPast2AM = now.getHours() >= 2;
+        
+        return isNewDay && isPast2AM;
     }
 }
 
