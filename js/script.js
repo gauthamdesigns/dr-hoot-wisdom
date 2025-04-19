@@ -58,10 +58,16 @@ function updateTimeAndTheme() {
 }
 
 // Update advice display
-function updateAdviceDisplay(advice) {
-    const adviceText = document.getElementById('adviceText');
-    if (adviceText) {
-        adviceText.textContent = `"${advice}"`;
+async function updateAdviceDisplay() {
+    try {
+        const response = await fetch('/api/get-advice');
+        const data = await response.json();
+        const adviceText = document.getElementById('adviceText');
+        if (adviceText && data.advice) {
+            adviceText.textContent = data.advice;
+        }
+    } catch (error) {
+        console.error('Error fetching advice:', error);
     }
 }
 
@@ -112,14 +118,13 @@ async function shareContent() {
 }
 
 // Initialize everything when the page loads
-window.onload = async function() {
+window.onload = function() {
     // Update time immediately and set interval
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
     
-    // Get and display current advice
-    const advice = await adviceStorage.getAdvice();
-    updateAdviceDisplay(advice);
+    // Display current advice
+    updateAdviceDisplay();
     
     // Set up share button
     const shareButton = document.getElementById('shareButton');
