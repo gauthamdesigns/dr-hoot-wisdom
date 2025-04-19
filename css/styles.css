@@ -20,6 +20,8 @@
 body {
     min-height: 100vh;
     transition: background-color 0.5s ease, color 0.5s ease;
+    background-color: var(--day-bg);
+    color: var(--day-text);
 }
 
 body.day-mode {

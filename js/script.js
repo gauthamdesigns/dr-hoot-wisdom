@@ -61,20 +61,22 @@ async function initialize() {
     owlImage.onerror = function() {
         console.error('Failed to load owl image');
         console.log('Attempting to load fallback image');
-        this.src = 'images/Dr.hoot%20asleep.png';
+        this.src = '/images/Dr.hoot%20asleep.png';
     };
 }
 
 // Update time and theme immediately and then every second
-updateTimeAndTheme();
-setInterval(updateTimeAndTheme, 1000);
-
-// Check advice update once per hour instead of every minute
-checkAndUpdateAdvice();
-setInterval(checkAndUpdateAdvice, 3600000); // 1 hour in milliseconds
-
-// Initialize the page
-initialize();
+document.addEventListener('DOMContentLoaded', () => {
+    updateTimeAndTheme();
+    setInterval(updateTimeAndTheme, 1000);
+    
+    // Check advice update once per hour instead of every minute
+    checkAndUpdateAdvice();
+    setInterval(checkAndUpdateAdvice, 3600000); // 1 hour in milliseconds
+    
+    // Initialize the page
+    initialize();
+});
 
 // Share functionality
 const shareButton = document.getElementById('shareButton');
