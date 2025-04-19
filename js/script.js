@@ -1,3 +1,8 @@
+import AdviceGenerator from './advice-generator.js';
+
+// Initialize advice generator
+const adviceGenerator = new AdviceGenerator();
+
 // Time and theme management
 function updateTimeAndTheme() {
     const now = new Date();
@@ -16,11 +21,36 @@ function updateTimeAndTheme() {
     const hour12 = hour % 12 || 12;
     const minutesStr = minutes.toString().padStart(2, '0');
     timeDisplay.textContent = `${hour12}:${minutesStr} ${ampm}`;
+
+    // Check if advice needs to be updated
+    if (adviceGenerator.shouldUpdate()) {
+        updateAdvice();
+    }
+}
+
+// Update advice
+async function updateAdvice() {
+    const advice = await adviceGenerator.generateAdvice();
+    const adviceText = document.getElementById('adviceText');
+    adviceText.textContent = `"${advice}"`;
+}
+
+// Initialize advice
+async function initialize() {
+    adviceGenerator.loadFromLocalStorage();
+    if (adviceGenerator.currentAdvice) {
+        document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
+    } else {
+        await updateAdvice();
+    }
 }
 
 // Update time and theme immediately and then every second
 updateTimeAndTheme();
 setInterval(updateTimeAndTheme, 1000);
+
+// Initialize the page
+initialize();
 
 // Share functionality
 const shareButton = document.getElementById('shareButton');
