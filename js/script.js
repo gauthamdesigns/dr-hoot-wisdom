@@ -1,4 +1,67 @@
-import AdviceGenerator from './advice-generator.js';
+// Advice Generator Class
+class AdviceGenerator {
+    constructor() {
+        this.lastUpdateTime = null;
+        this.currentAdvice = null;
+    }
+
+    async generateAdvice() {
+        try {
+            const response = await fetch('/api/generate-advice');
+            const data = await response.json();
+            
+            if (data.advice) {
+                this.currentAdvice = data.advice;
+                this.lastUpdateTime = new Date();
+                this.saveToLocalStorage();
+                return this.currentAdvice;
+            }
+            throw new Error('No advice generated');
+        } catch (error) {
+            console.error('Error generating advice:', error);
+            return this.getBackupAdvice();
+        }
+    }
+
+    getBackupAdvice() {
+        const backupAdvice = [
+            "Your soulmate is probably in your spam folder",
+            "If plan A fails, the alphabet has 25 more letters",
+            "When life gives you lemons, ask for a gift receipt",
+            "Dance like your internet connection just came back",
+            "The early bird gets the worm, but the second mouse gets the cheese"
+        ];
+        return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
+    }
+
+    saveToLocalStorage() {
+        localStorage.setItem('drHootAdvice', JSON.stringify({
+            advice: this.currentAdvice,
+            timestamp: this.lastUpdateTime
+        }));
+    }
+
+    loadFromLocalStorage() {
+        const saved = localStorage.getItem('drHootAdvice');
+        if (saved) {
+            const { advice, timestamp } = JSON.parse(saved);
+            this.currentAdvice = advice;
+            this.lastUpdateTime = new Date(timestamp);
+        }
+    }
+
+    shouldUpdate() {
+        if (!this.currentAdvice) return true;
+        if (!this.lastUpdateTime) return true;
+        
+        const now = new Date();
+        const lastUpdate = new Date(this.lastUpdateTime);
+        
+        return now.getDate() !== lastUpdate.getDate() || 
+               now.getMonth() !== lastUpdate.getMonth() || 
+               now.getFullYear() !== lastUpdate.getFullYear();
+    }
+}
 
 // Initialize advice generator
 const adviceGenerator = new AdviceGenerator();
@@ -17,25 +80,13 @@ function updateTimeAndTheme() {
     
     // Update time display with current time
     const timeDisplay = document.getElementById('currentTime');
-    if (!timeDisplay) {
-        console.error('Time display element not found');
-        return;
-    }
+    if (!timeDisplay) return;
     
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     const minutesStr = minutes.toString().padStart(2, '0');
     const secondsStr = seconds.toString().padStart(2, '0');
-    const timeString = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
-    timeDisplay.textContent = timeString;
-    console.log('Time updated:', timeString);
-}
-
-// Function to check and update advice
-function checkAndUpdateAdvice() {
-    if (adviceGenerator.shouldUpdate()) {
-        updateAdvice();
-    }
+    timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
 }
 
 // Update advice
@@ -44,21 +95,6 @@ async function updateAdvice() {
     const adviceText = document.getElementById('adviceText');
     adviceText.textContent = `"${advice}"`;
 }
-
-// Initialize everything when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
-    
-    // Update time immediately
-    updateTimeAndTheme();
-    
-    // Set up interval for time updates
-    const timeInterval = setInterval(updateTimeAndTheme, 1000);
-    console.log('Time update interval set');
-    
-    // Initialize the page
-    initialize();
-});
 
 // Initialize advice
 async function initialize() {
@@ -75,25 +111,10 @@ async function initialize() {
         // If we have no advice at all, generate some
         await updateAdvice();
     }
-
-    // Check if owl image loaded successfully
-    const owlImage = document.getElementById('owlImage');
-    owlImage.onload = function() {
-        console.log('Owl image loaded successfully');
-    };
-    owlImage.onerror = function() {
-        console.error('Failed to load owl image');
-        console.log('Attempting to load fallback image');
-        this.src = '/images/Dr.hoot%20asleep.png';
-    };
 }
 
 // Share functionality
-const shareButton = document.getElementById('shareButton');
-const adviceText = document.getElementById('adviceText');
-
-async function showToast(message) {
-    // Create and style toast notification
+function showToast(message) {
     const toast = document.createElement('div');
     toast.textContent = message;
     toast.style.cssText = `
@@ -112,7 +133,6 @@ async function showToast(message) {
     
     document.body.appendChild(toast);
     
-    // Remove toast after 2 seconds
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
@@ -120,6 +140,7 @@ async function showToast(message) {
 }
 
 async function shareContent() {
+    const adviceText = document.getElementById('adviceText');
     const text = adviceText.textContent;
     const textWithCredit = `${text}\n@Dr. Hoot`;
     
@@ -127,20 +148,37 @@ async function shareContent() {
         await navigator.clipboard.writeText(textWithCredit);
         showToast('Advice copied to clipboard! 📋');
         
-        // Change button text temporarily
+        const shareButton = document.getElementById('shareButton');
         const originalText = shareButton.textContent;
         shareButton.textContent = 'Copied!';
         setTimeout(() => {
             shareButton.textContent = originalText;
         }, 2000);
-        
     } catch (err) {
         showToast('Failed to copy text. Please try again.');
-        console.error('Error copying text:', err);
     }
 }
 
-shareButton.addEventListener('click', shareContent);
+// Initialize everything when the page loads
+window.onload = function() {
+    // Update time immediately and set interval
+    updateTimeAndTheme();
+    setInterval(updateTimeAndTheme, 1000);
+    
+    // Initialize the page
+    initialize();
+    
+    // Set up share button
+    const shareButton = document.getElementById('shareButton');
+    shareButton.addEventListener('click', shareContent);
+};
+
+// Check and update advice
+function checkAndUpdateAdvice() {
+    if (adviceGenerator.shouldUpdate()) {
+        updateAdvice();
+    }
+}
 
 // TODO: Add OpenAI API integration for daily advice updates
 // This will be implemented later when we have the API key 
