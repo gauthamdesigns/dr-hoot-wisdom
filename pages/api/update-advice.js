@@ -3,7 +3,12 @@ import path from 'path';
 
 const ADVICE_FILE = path.join(process.cwd(), 'pages/api/advice.txt');
 
-async function updateAdvice() {
+export default async function handler(req, res) {
+    // Only allow GET requests
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -30,29 +35,12 @@ async function updateAdvice() {
             const advice = data.choices[0].message.content.trim();
             fs.writeFileSync(ADVICE_FILE, `"${advice}"`);
             console.log('Advice updated successfully at', new Date().toISOString());
+            return res.status(200).json({ success: true, message: 'Advice updated successfully' });
+        } else {
+            throw new Error('No advice generated');
         }
     } catch (error) {
         console.error('Error updating advice:', error);
+        return res.status(500).json({ error: 'Failed to update advice' });
     }
-}
-
-// Schedule the update for 2 AM
-function scheduleUpdate() {
-    const now = new Date();
-    const targetTime = new Date(now);
-    targetTime.setHours(2, 0, 0, 0);
-    
-    if (now > targetTime) {
-        targetTime.setDate(targetTime.getDate() + 1);
-    }
-    
-    const timeUntilUpdate = targetTime - now;
-    setTimeout(() => {
-        updateAdvice();
-        // Schedule next update for tomorrow
-        scheduleUpdate();
-    }, timeUntilUpdate);
-}
-
-// Start the scheduler
-scheduleUpdate(); 
+} 
