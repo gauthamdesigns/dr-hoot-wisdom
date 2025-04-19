@@ -1,16 +1,18 @@
-let dailyAdvice = null;
-let lastUpdateDate = null;
+import { readStorage, writeStorage } from './advice-storage.js';
 
 export default async function handler(request, response) {
     if (request.method === 'GET') {
-        // Return the current advice if it exists and is from today
+        // Read current advice from storage
+        const { advice, date } = readStorage();
         const now = new Date();
-        if (dailyAdvice && lastUpdateDate) {
-            const lastUpdate = new Date(lastUpdateDate);
+
+        // If we have advice from today, return it
+        if (advice && date) {
+            const lastUpdate = new Date(date);
             if (now.getDate() === lastUpdate.getDate() &&
                 now.getMonth() === lastUpdate.getMonth() &&
                 now.getFullYear() === lastUpdate.getFullYear()) {
-                return response.status(200).json({ advice: dailyAdvice });
+                return response.status(200).json({ advice });
             }
         }
 
@@ -39,9 +41,9 @@ export default async function handler(request, response) {
             const data = await openaiResponse.json();
             
             if (data.choices && data.choices[0]) {
-                dailyAdvice = data.choices[0].message.content.trim();
-                lastUpdateDate = now.toISOString();
-                return response.status(200).json({ advice: dailyAdvice });
+                const newAdvice = data.choices[0].message.content.trim();
+                writeStorage(newAdvice, now.toISOString());
+                return response.status(200).json({ advice: newAdvice });
             }
             
             throw new Error('No advice generated');
