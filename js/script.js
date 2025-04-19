@@ -1,45 +1,33 @@
 // Simple advice storage class
 class AdviceStorage {
     constructor() {
-        this.loadFromStorage();
+        this.currentAdvice = null;
     }
 
-    loadFromStorage() {
-        const stored = localStorage.getItem('drHootAdvice');
-        if (stored) {
-            const { advice, date } = JSON.parse(stored);
-            this.currentAdvice = advice;
-            this.lastUpdateDate = new Date(date);
-        } else {
-            this.currentAdvice = null;
-            this.lastUpdateDate = null;
+    async getAdvice() {
+        try {
+            const response = await fetch('/api/daily-advice');
+            const data = await response.json();
+            if (data.advice) {
+                this.currentAdvice = data.advice;
+                return this.currentAdvice;
+            }
+            throw new Error('No advice received');
+        } catch (error) {
+            console.error('Error getting advice:', error);
+            return this.getBackupAdvice();
         }
     }
 
-    saveToStorage(advice) {
-        const now = new Date();
-        const data = {
-            advice: advice,
-            date: now.toISOString()
-        };
-        localStorage.setItem('drHootAdvice', JSON.stringify(data));
-        this.currentAdvice = advice;
-        this.lastUpdateDate = now;
-    }
-
-    isNewDay() {
-        if (!this.lastUpdateDate) return true;
-        
-        const now = new Date();
-        const lastUpdate = new Date(this.lastUpdateDate);
-        
-        return now.getDate() !== lastUpdate.getDate() ||
-               now.getMonth() !== lastUpdate.getMonth() ||
-               now.getFullYear() !== lastUpdate.getFullYear();
-    }
-
-    getCurrentAdvice() {
-        return this.currentAdvice;
+    getBackupAdvice() {
+        const backupAdvice = [
+            "Your soulmate is probably in your spam folder",
+            "If plan A fails, the alphabet has 25 more letters",
+            "When life gives you lemons, ask for a gift receipt",
+            "Dance like your internet connection just came back",
+            "The early bird gets the worm, but the second mouse gets the cheese"
+        ];
+        return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
     }
 }
 
@@ -67,30 +55,6 @@ function updateTimeAndTheme() {
         const secondsStr = seconds.toString().padStart(2, '0');
         timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
     }
-}
-
-// Get advice from API
-async function getNewAdvice() {
-    try {
-        const response = await fetch('/api/generate-advice');
-        const data = await response.json();
-        return data.advice;
-    } catch (error) {
-        console.error('Error getting advice:', error);
-        return getBackupAdvice();
-    }
-}
-
-// Backup advice if API fails
-function getBackupAdvice() {
-    const backupAdvice = [
-        "Your soulmate is probably in your spam folder",
-        "If plan A fails, the alphabet has 25 more letters",
-        "When life gives you lemons, ask for a gift receipt",
-        "Dance like your internet connection just came back",
-        "The early bird gets the worm, but the second mouse gets the cheese"
-    ];
-    return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
 }
 
 // Update advice display
@@ -153,14 +117,9 @@ window.onload = async function() {
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
     
-    // Check if we need new advice
-    if (adviceStorage.isNewDay()) {
-        const newAdvice = await getNewAdvice();
-        adviceStorage.saveToStorage(newAdvice);
-    }
-    
-    // Display current advice
-    updateAdviceDisplay(adviceStorage.getCurrentAdvice());
+    // Get and display current advice
+    const advice = await adviceStorage.getAdvice();
+    updateAdviceDisplay(advice);
     
     // Set up share button
     const shareButton = document.getElementById('shareButton');
