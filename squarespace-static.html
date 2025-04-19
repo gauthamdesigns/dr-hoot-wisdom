@@ -1,0 +1,108 @@
+<style>
+    .advice-wrapper * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .advice-wrapper {
+        min-height: 100vh;
+        background-color: #FFF2D2;
+        color: #0C090D;
+        padding: 20px;
+    }
+
+    .container {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .advice-container {
+        max-width: 800px;
+        width: 100%;
+        text-align: center;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .owl-container {
+        width: 200px;
+        height: 200px;
+        margin: 2rem 0;
+        transition: transform 0.3s ease;
+    }
+
+    .owl-container:hover {
+        transform: scale(1.05);
+    }
+
+    .owl-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .advice-content {
+        margin: 2rem 0;
+        cursor: pointer;
+        position: relative;
+        padding: 2rem;
+    }
+
+    .advice-text {
+        font-size: 2rem;
+        line-height: 1.4;
+        font-weight: 500;
+        max-width: 600px;
+        margin: 0 auto;
+        user-select: all;
+    }
+
+    .credit-text {
+        font-size: 1rem;
+        color: #666;
+        margin-top: 1rem;
+        user-select: all;
+    }
+
+    .copy-hint {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 1rem;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .advice-text {
+            font-size: 1.5rem;
+        }
+        
+        .owl-container {
+            width: 150px;
+            height: 150px;
+        }
+    }
+</style>
+
+<div class="advice-wrapper">
+    <div class="container">
+        <main class="advice-container">
+            <div class="owl-container">
+                <img src="YOUR_SQUARESPACE_IMAGE_URL" alt="Wise Owl" class="owl-image">
+            </div>
+            <div class="advice-content">
+                <p class="advice-text">"Your soulmate is probably in your spam folder"</p>
+                <p class="credit-text">@Dr. Hoot</p>
+                <p class="copy-hint">(Click and press Ctrl/Cmd+C to copy)</p>
+            </div>
+        </main>
+    </div>
+</div> 

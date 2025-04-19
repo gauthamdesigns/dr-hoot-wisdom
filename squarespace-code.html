@@ -1,0 +1,228 @@
+<!-- Combined HTML, CSS, and JavaScript for Squarespace -->
+<style>
+    :root {
+        --day-bg: #FFF2D2;
+        --day-text: #0C090D;
+        --day-button: #98A7FA;
+        --day-button-text: #FFFFFF;
+        
+        --night-bg: #98A7FA;
+        --night-text: #FFFFFF;
+        --night-button: #FFF2D2;
+        --night-button-text: #0C090D;
+    }
+
+    .advice-wrapper * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .advice-wrapper {
+        min-height: 100vh;
+        transition: background-color 0.5s ease, color 0.5s ease;
+        padding: 20px;
+    }
+
+    .advice-wrapper.day-mode {
+        background-color: var(--day-bg);
+        color: var(--day-text);
+    }
+
+    .advice-wrapper.night-mode {
+        background-color: var(--night-bg);
+        color: var(--night-text);
+    }
+
+    .advice-wrapper.day-mode .share-button {
+        background-color: var(--day-button);
+        color: var(--day-button-text);
+    }
+
+    .advice-wrapper.night-mode .share-button {
+        background-color: var(--night-button);
+        color: var(--night-button-text);
+    }
+
+    .container {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .advice-container {
+        max-width: 800px;
+        width: 100%;
+        text-align: center;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .time {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    .owl-container {
+        width: 200px;
+        height: 200px;
+        margin: 2rem 0;
+        transition: transform 0.3s ease;
+    }
+
+    .owl-container:hover {
+        transform: scale(1.05);
+    }
+
+    .owl-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .advice-content {
+        margin: 2rem 0;
+    }
+
+    .advice-text {
+        font-size: 2rem;
+        line-height: 1.4;
+        font-weight: 500;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .share-button {
+        border: none;
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .share-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+        .advice-text {
+            font-size: 1.5rem;
+        }
+        
+        .owl-container {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .share-button {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<div class="advice-wrapper">
+    <div class="container">
+        <main class="advice-container">
+            <div class="time" id="currentTime">10:12 PM</div>
+            <div class="owl-container">
+                <img src="YOUR_SQUARESPACE_IMAGE_URL" alt="Wise Owl" class="owl-image" id="owlImage">
+            </div>
+            <div class="advice-content">
+                <p class="advice-text" id="adviceText">"Your soulmate is probably in your spam folder"</p>
+            </div>
+            <button class="share-button" id="shareButton">
+                Share
+            </button>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Time and theme management
+    function updateTimeAndTheme() {
+        const now = new Date();
+        const hour = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const isNight = hour >= 18 || hour < 6;
+        
+        // Update theme
+        const wrapper = document.querySelector('.advice-wrapper');
+        wrapper.classList.toggle('night-mode', isNight);
+        wrapper.classList.toggle('day-mode', !isNight);
+        
+        // Update time display with current time
+        const timeDisplay = document.getElementById('currentTime');
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        const minutesStr = minutes.toString().padStart(2, '0');
+        timeDisplay.textContent = `${hour12}:${minutesStr} ${ampm}`;
+    }
+
+    // Update time and theme immediately and then every second
+    updateTimeAndTheme();
+    setInterval(updateTimeAndTheme, 1000);
+
+    // Share functionality
+    const shareButton = document.getElementById('shareButton');
+    const adviceText = document.getElementById('adviceText');
+
+    async function showToast(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
+    async function shareContent() {
+        const text = adviceText.textContent;
+        const textWithCredit = `${text}\n@Dr. Hoot`;
+        
+        try {
+            await navigator.clipboard.writeText(textWithCredit);
+            showToast('Advice copied to clipboard! 📋');
+            
+            const originalText = shareButton.textContent;
+            shareButton.textContent = 'Copied!';
+            setTimeout(() => {
+                shareButton.textContent = originalText;
+            }, 2000);
+            
+        } catch (err) {
+            showToast('Failed to copy text. Please try again.');
+            console.error('Error copying text:', err);
+        }
+    }
+
+    shareButton.addEventListener('click', shareContent);
+</script> 
