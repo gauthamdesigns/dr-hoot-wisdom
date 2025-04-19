@@ -51,14 +51,15 @@ class AdviceGenerator {
     }
 
     shouldUpdate() {
-        if (!this.currentAdvice) return true;
-        if (!this.lastUpdateTime) return true;
-        
         const now = new Date();
-        const lastUpdate = new Date(this.lastUpdateTime);
+        const lastUpdate = this.lastUpdateTime ? new Date(this.lastUpdateTime) : null;
         
-        return now.getDate() !== lastUpdate.getDate() || 
-               now.getMonth() !== lastUpdate.getMonth() || 
+        // If no last update, we need to update
+        if (!lastUpdate) return true;
+        
+        // Check if it's a new day
+        return now.getDate() !== lastUpdate.getDate() ||
+               now.getMonth() !== lastUpdate.getMonth() ||
                now.getFullYear() !== lastUpdate.getFullYear();
     }
 }
@@ -98,18 +99,18 @@ async function updateAdvice() {
 
 // Initialize advice
 async function initialize() {
-    // Load any saved advice first
+    // Load saved advice first
     adviceGenerator.loadFromLocalStorage();
     
     // Only update if we need to (once per day)
     if (adviceGenerator.shouldUpdate()) {
-        await updateAdvice();
+        updateAdvice();
     } else if (adviceGenerator.currentAdvice) {
         // If we have saved advice and don't need to update, use it
         document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
     } else {
         // If we have no advice at all, generate some
-        await updateAdvice();
+        updateAdvice();
     }
 }
 
@@ -165,8 +166,19 @@ window.onload = function() {
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
     
-    // Initialize the page
-    initialize();
+    // Load saved advice first
+    adviceGenerator.loadFromLocalStorage();
+    
+    // Only update if we need to (once per day)
+    if (adviceGenerator.shouldUpdate()) {
+        updateAdvice();
+    } else if (adviceGenerator.currentAdvice) {
+        // If we have saved advice and don't need to update, use it
+        document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
+    } else {
+        // If we have no advice at all, generate some
+        updateAdvice();
+    }
     
     // Set up share button
     const shareButton = document.getElementById('shareButton');
