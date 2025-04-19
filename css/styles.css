@@ -68,6 +68,8 @@ body.night-mode .share-button {
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 1rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
 }
 
 .owl-container {

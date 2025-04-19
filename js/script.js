@@ -20,7 +20,8 @@ function updateTimeAndTheme() {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     const minutesStr = minutes.toString().padStart(2, '0');
-    timeDisplay.textContent = `${hour12}:${minutesStr} ${ampm}`;
+    const secondsStr = seconds.toString().padStart(2, '0');
+    timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
 }
 
 // Function to check and update advice
