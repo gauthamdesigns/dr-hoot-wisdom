@@ -17,11 +17,18 @@ function updateTimeAndTheme() {
     
     // Update time display with current time
     const timeDisplay = document.getElementById('currentTime');
+    if (!timeDisplay) {
+        console.error('Time display element not found');
+        return;
+    }
+    
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const hour12 = hour % 12 || 12;
     const minutesStr = minutes.toString().padStart(2, '0');
     const secondsStr = seconds.toString().padStart(2, '0');
-    timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
+    const timeString = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
+    timeDisplay.textContent = timeString;
+    console.log('Time updated:', timeString);
 }
 
 // Function to check and update advice
@@ -66,14 +73,21 @@ async function initialize() {
     };
 }
 
-// Update time and theme immediately and then every second
+// Initialize everything when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    updateTimeAndTheme();
-    setInterval(updateTimeAndTheme, 1000);
+    console.log('DOM loaded, initializing...');
     
-    // Check advice update once per hour instead of every minute
+    // Update time immediately
+    updateTimeAndTheme();
+    
+    // Set up interval for time updates
+    const timeInterval = setInterval(updateTimeAndTheme, 1000);
+    console.log('Time update interval set');
+    
+    // Check advice update once per hour
     checkAndUpdateAdvice();
-    setInterval(checkAndUpdateAdvice, 3600000); // 1 hour in milliseconds
+    const adviceInterval = setInterval(checkAndUpdateAdvice, 3600000);
+    console.log('Advice update interval set');
     
     // Initialize the page
     initialize();
