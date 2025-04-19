@@ -51,11 +51,10 @@ class AdviceGenerator {
     }
 
     shouldUpdate() {
-        const now = new Date();
-        const lastUpdate = this.lastUpdateTime ? new Date(this.lastUpdateTime) : null;
+        if (!this.lastUpdateTime) return true;
         
-        // If no last update, we need to update
-        if (!lastUpdate) return true;
+        const now = new Date();
+        const lastUpdate = new Date(this.lastUpdateTime);
         
         // Check if it's a new day
         return now.getDate() !== lastUpdate.getDate() ||
@@ -175,9 +174,6 @@ window.onload = function() {
     } else if (adviceGenerator.currentAdvice) {
         // If we have saved advice and don't need to update, use it
         document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
-    } else {
-        // If we have no advice at all, generate some
-        updateAdvice();
     }
     
     // Set up share button
