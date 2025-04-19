@@ -1,93 +1,50 @@
-// Advice Generator Class
-class AdviceGenerator {
+// Simple advice storage class
+class AdviceStorage {
     constructor() {
-        this.lastUpdateTime = null;
-        this.currentAdvice = null;
-        this.isGenerating = false;
+        this.loadFromStorage();
     }
 
-    async generateAdvice() {
-        // If we're already generating advice, wait for it
-        if (this.isGenerating) {
-            return new Promise((resolve) => {
-                const checkAdvice = () => {
-                    if (this.currentAdvice) {
-                        resolve(this.currentAdvice);
-                    } else {
-                        setTimeout(checkAdvice, 100);
-                    }
-                };
-                checkAdvice();
-            });
-        }
-
-        // If we have advice from today, return it
-        if (this.currentAdvice && !this.shouldUpdate()) {
-            return this.currentAdvice;
-        }
-
-        this.isGenerating = true;
-        try {
-            const response = await fetch('/api/generate-advice');
-            const data = await response.json();
-            
-            if (data.advice) {
-                this.currentAdvice = data.advice;
-                this.lastUpdateTime = new Date();
-                this.saveToLocalStorage();
-                return this.currentAdvice;
-            }
-            throw new Error('No advice generated');
-        } catch (error) {
-            console.error('Error generating advice:', error);
-            return this.getBackupAdvice();
-        } finally {
-            this.isGenerating = false;
-        }
-    }
-
-    getBackupAdvice() {
-        const backupAdvice = [
-            "Your soulmate is probably in your spam folder",
-            "If plan A fails, the alphabet has 25 more letters",
-            "When life gives you lemons, ask for a gift receipt",
-            "Dance like your internet connection just came back",
-            "The early bird gets the worm, but the second mouse gets the cheese"
-        ];
-        return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
-    }
-
-    saveToLocalStorage() {
-        localStorage.setItem('drHootAdvice', JSON.stringify({
-            advice: this.currentAdvice,
-            timestamp: this.lastUpdateTime
-        }));
-    }
-
-    loadFromLocalStorage() {
-        const saved = localStorage.getItem('drHootAdvice');
-        if (saved) {
-            const { advice, timestamp } = JSON.parse(saved);
+    loadFromStorage() {
+        const stored = localStorage.getItem('drHootAdvice');
+        if (stored) {
+            const { advice, date } = JSON.parse(stored);
             this.currentAdvice = advice;
-            this.lastUpdateTime = new Date(timestamp);
+            this.lastUpdateDate = new Date(date);
+        } else {
+            this.currentAdvice = null;
+            this.lastUpdateDate = null;
         }
     }
 
-    shouldUpdate() {
-        if (!this.lastUpdateTime) return true;
+    saveToStorage(advice) {
+        const now = new Date();
+        const data = {
+            advice: advice,
+            date: now.toISOString()
+        };
+        localStorage.setItem('drHootAdvice', JSON.stringify(data));
+        this.currentAdvice = advice;
+        this.lastUpdateDate = now;
+    }
+
+    isNewDay() {
+        if (!this.lastUpdateDate) return true;
         
         const now = new Date();
-        const lastUpdate = new Date(this.lastUpdateTime);
+        const lastUpdate = new Date(this.lastUpdateDate);
         
-        // Check if it's a new day
         return now.getDate() !== lastUpdate.getDate() ||
                now.getMonth() !== lastUpdate.getMonth() ||
                now.getFullYear() !== lastUpdate.getFullYear();
     }
+
+    getCurrentAdvice() {
+        return this.currentAdvice;
+    }
 }
 
-// Initialize advice generator
-const adviceGenerator = new AdviceGenerator();
+// Initialize advice storage
+const adviceStorage = new AdviceStorage();
 
 // Time and theme management
 function updateTimeAndTheme() {
@@ -101,38 +58,46 @@ function updateTimeAndTheme() {
     document.body.classList.toggle('night-mode', isNight);
     document.body.classList.toggle('day-mode', !isNight);
     
-    // Update time display with current time
+    // Update time display
     const timeDisplay = document.getElementById('currentTime');
-    if (!timeDisplay) return;
-    
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    const minutesStr = minutes.toString().padStart(2, '0');
-    const secondsStr = seconds.toString().padStart(2, '0');
-    timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
+    if (timeDisplay) {
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 || 12;
+        const minutesStr = minutes.toString().padStart(2, '0');
+        const secondsStr = seconds.toString().padStart(2, '0');
+        timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
+    }
 }
 
-// Update advice
-async function updateAdvice() {
-    const advice = await adviceGenerator.generateAdvice();
+// Get advice from API
+async function getNewAdvice() {
+    try {
+        const response = await fetch('/api/generate-advice');
+        const data = await response.json();
+        return data.advice;
+    } catch (error) {
+        console.error('Error getting advice:', error);
+        return getBackupAdvice();
+    }
+}
+
+// Backup advice if API fails
+function getBackupAdvice() {
+    const backupAdvice = [
+        "Your soulmate is probably in your spam folder",
+        "If plan A fails, the alphabet has 25 more letters",
+        "When life gives you lemons, ask for a gift receipt",
+        "Dance like your internet connection just came back",
+        "The early bird gets the worm, but the second mouse gets the cheese"
+    ];
+    return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
+}
+
+// Update advice display
+function updateAdviceDisplay(advice) {
     const adviceText = document.getElementById('adviceText');
-    adviceText.textContent = `"${advice}"`;
-}
-
-// Initialize advice
-async function initialize() {
-    // Load saved advice first
-    adviceGenerator.loadFromLocalStorage();
-    
-    // Only update if we need to (once per day)
-    if (adviceGenerator.shouldUpdate()) {
-        updateAdvice();
-    } else if (adviceGenerator.currentAdvice) {
-        // If we have saved advice and don't need to update, use it
-        document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
-    } else {
-        // If we have no advice at all, generate some
-        updateAdvice();
+    if (adviceText) {
+        adviceText.textContent = `"${advice}"`;
     }
 }
 
@@ -183,21 +148,19 @@ async function shareContent() {
 }
 
 // Initialize everything when the page loads
-window.onload = function() {
+window.onload = async function() {
     // Update time immediately and set interval
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
     
-    // Load saved advice first
-    adviceGenerator.loadFromLocalStorage();
-    
-    // Only update if we need to (once per day)
-    if (adviceGenerator.shouldUpdate()) {
-        updateAdvice();
-    } else if (adviceGenerator.currentAdvice) {
-        // If we have saved advice and don't need to update, use it
-        document.getElementById('adviceText').textContent = `"${adviceGenerator.currentAdvice}"`;
+    // Check if we need new advice
+    if (adviceStorage.isNewDay()) {
+        const newAdvice = await getNewAdvice();
+        adviceStorage.saveToStorage(newAdvice);
     }
+    
+    // Display current advice
+    updateAdviceDisplay(adviceStorage.getCurrentAdvice());
     
     // Set up share button
     const shareButton = document.getElementById('shareButton');
@@ -206,7 +169,7 @@ window.onload = function() {
 
 // Check and update advice
 function checkAndUpdateAdvice() {
-    if (adviceGenerator.shouldUpdate()) {
+    if (adviceStorage.isNewDay()) {
         updateAdvice();
     }
 }
