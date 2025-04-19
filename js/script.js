@@ -3,9 +3,30 @@ class AdviceGenerator {
     constructor() {
         this.lastUpdateTime = null;
         this.currentAdvice = null;
+        this.isGenerating = false;
     }
 
     async generateAdvice() {
+        // If we're already generating advice, wait for it
+        if (this.isGenerating) {
+            return new Promise((resolve) => {
+                const checkAdvice = () => {
+                    if (this.currentAdvice) {
+                        resolve(this.currentAdvice);
+                    } else {
+                        setTimeout(checkAdvice, 100);
+                    }
+                };
+                checkAdvice();
+            });
+        }
+
+        // If we have advice from today, return it
+        if (this.currentAdvice && !this.shouldUpdate()) {
+            return this.currentAdvice;
+        }
+
+        this.isGenerating = true;
         try {
             const response = await fetch('/api/generate-advice');
             const data = await response.json();
@@ -20,6 +41,8 @@ class AdviceGenerator {
         } catch (error) {
             console.error('Error generating advice:', error);
             return this.getBackupAdvice();
+        } finally {
+            this.isGenerating = false;
         }
     }
 
