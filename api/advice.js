@@ -36,23 +36,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Always check for stored advice first
+        // Get the current advice (will be the same throughout the day)
         const stored = readStorage();
-        if (stored.advice) {
-            return res.status(200).json(stored);
-        }
-
-        // Only generate new advice if there is no stored advice
-        const advice = await generateAdvice();
-        const timestamp = new Date().toISOString();
-
-        // Store the new advice
-        const success = writeStorage({ advice, timestamp });
-        if (!success) {
-            throw new Error('Failed to store advice');
-        }
-
-        return res.status(200).json({ advice, timestamp });
+        return res.status(200).json(stored);
     } catch (error) {
         console.error('Error:', error);
         return res.status(500).json({ 

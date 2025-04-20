@@ -1,34 +1,13 @@
 import { readStorage, writeStorage } from './advice-storage.js';
-import OpenAI from 'openai';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-
-async function generateAdvice() {
-    try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [{
-                role: "system",
-                content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
-            }, {
-                role: "user",
-                content: "Give me one piece of life advice."
-            }],
-            max_tokens: 50,
-            temperature: 0.8
-        });
-
-        if (completion.choices && completion.choices[0]) {
-            return completion.choices[0].message.content.trim();
-        }
-        throw new Error('No advice generated');
-    } catch (error) {
-        console.error('Error generating advice:', error);
-        throw error;
-    }
-}
+// Define preset advice options
+const PRESET_ADVICE = [
+    "Always carry a spare pair of socks. You never know when you'll need to make a quick escape.",
+    "If life gives you lemons, make sure they're not actually limes in disguise.",
+    "Never trust a penguin with your lunch. They have a history of fish-related crimes.",
+    "When in doubt, do a little dance. It confuses your enemies and amuses your friends.",
+    "Remember: the early bird gets the worm, but the second mouse gets the cheese."
+];
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -36,39 +15,18 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Try to generate new advice
-        let advice;
-        let retryCount = 0;
-        const maxRetries = 2;
+        // Get a random preset advice
+        const randomIndex = Math.floor(Math.random() * PRESET_ADVICE.length);
+        const advice = PRESET_ADVICE[randomIndex];
+        const timestamp = new Date().toISOString();
 
-        while (retryCount < maxRetries) {
-            try {
-                advice = await generateAdvice();
-                break;
-            } catch (error) {
-                retryCount++;
-                if (retryCount === maxRetries) {
-                    throw error;
-                }
-                // Wait 1 second before retrying
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-        }
-
-        // Store the new advice with timestamp
-        const success = writeStorage({
-            advice,
-            timestamp: new Date().toISOString()
-        });
-
-        if (!success) {
-            throw new Error('Failed to store advice');
-        }
+        // Store the new advice
+        writeStorage({ advice, timestamp });
 
         return res.status(200).json({
             success: true,
             advice,
-            timestamp: new Date().toISOString()
+            timestamp
         });
     } catch (error) {
         console.error('Error updating advice:', error);
