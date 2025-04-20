@@ -12,6 +12,13 @@ const PRESET_ADVICE = [
     "Remember: the early bird gets the worm, but the second mouse gets the cheese."
 ];
 
+// Global cache object
+const cache = {
+    advice: null,
+    timestamp: null,
+    date: null
+};
+
 // Get current date in YYYY-MM-DD format
 function getCurrentDate() {
     const now = new Date();
@@ -20,32 +27,19 @@ function getCurrentDate() {
 
 export function readStorage() {
     try {
-        // Get current date
         const currentDate = getCurrentDate();
         
-        // Get stored date and advice from environment variables
-        const storedDate = process.env.ADVICE_DATE;
-        const storedAdvice = process.env.CURRENT_ADVICE;
-        
-        // If no stored data or date is different, generate new advice
-        if (!storedDate || storedDate !== currentDate || !storedAdvice) {
+        // If cache is empty or date is different, generate new advice
+        if (!cache.advice || !cache.date || cache.date !== currentDate) {
             const randomIndex = Math.floor(Math.random() * PRESET_ADVICE.length);
-            const newAdvice = PRESET_ADVICE[randomIndex];
-            
-            // Update environment variables
-            process.env.ADVICE_DATE = currentDate;
-            process.env.CURRENT_ADVICE = newAdvice;
-            
-            return {
-                advice: newAdvice,
-                timestamp: new Date().toISOString()
-            };
+            cache.advice = PRESET_ADVICE[randomIndex];
+            cache.timestamp = new Date().toISOString();
+            cache.date = currentDate;
         }
         
-        // Return stored advice
         return {
-            advice: storedAdvice,
-            timestamp: new Date().toISOString()
+            advice: cache.advice,
+            timestamp: cache.timestamp
         };
     } catch (error) {
         console.error('Error reading storage:', error);
@@ -59,9 +53,9 @@ export function readStorage() {
 
 export function writeStorage(data) {
     try {
-        // Update environment variables
-        process.env.ADVICE_DATE = getCurrentDate();
-        process.env.CURRENT_ADVICE = data.advice;
+        cache.advice = data.advice;
+        cache.timestamp = data.timestamp;
+        cache.date = getCurrentDate();
         return true;
     } catch (error) {
         console.error('Error writing storage:', error);
