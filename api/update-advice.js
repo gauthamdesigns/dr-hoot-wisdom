@@ -21,7 +21,10 @@ export default async function handler(req, res) {
         const timestamp = new Date().toISOString();
 
         // Store the new advice
-        writeStorage({ advice, timestamp });
+        const success = writeStorage({ advice, timestamp });
+        if (!success) {
+            throw new Error('Failed to store advice');
+        }
 
         return res.status(200).json({
             success: true,

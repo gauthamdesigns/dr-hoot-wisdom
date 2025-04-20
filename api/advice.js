@@ -1,4 +1,4 @@
-import { readStorage, writeStorage } from './advice-storage.js';
+import { readStorage } from './advice-storage.js';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
