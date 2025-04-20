@@ -14,10 +14,18 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Simply return the stored advice
-    const stored = readStorage();
-    return res.status(200).json({
-        success: true,
-        ...stored
-    });
+    try {
+        // Force a new advice generation by reading storage
+        const stored = await readStorage();
+        return res.status(200).json({
+            success: true,
+            ...stored
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ 
+            error: 'Failed to update advice',
+            message: error.message
+        });
+    }
 } 
