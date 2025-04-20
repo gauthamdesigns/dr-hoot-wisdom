@@ -77,6 +77,7 @@ body.night-mode .share-button {
     margin-bottom: 1rem;
     font-family: 'Poppins', sans-serif;
     opacity: 0.8;
+    color: var(--day-text);
 }
 
 body.day-mode .update-time {
