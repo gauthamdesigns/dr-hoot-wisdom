@@ -1,8 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import OpenAI from 'openai';
-
-const STORAGE_PATH = path.join(process.cwd(), 'data', 'advice.json');
+import { kv } from '@vercel/kv';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
@@ -24,8 +21,7 @@ const cache = {
 
 // Get current date in YYYY-MM-DD format
 function getCurrentDate() {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return new Date().toISOString().split('T')[0];
 }
 
 async function generateAdvice() {
@@ -61,19 +57,36 @@ function isNewDay() {
 
 export async function readStorage() {
     try {
-        // If it's a new day or we don't have advice, generate new advice
-        if (isNewDay() || !currentAdvice) {
-            currentAdvice = await generateAdvice();
-            lastUpdateDate = new Date().toISOString().split('T')[0];
+        const currentDate = getCurrentDate();
+        
+        // Get stored data from KV
+        const storedData = await kv.get('advice');
+        
+        // If no data or date is different, generate new advice
+        if (!storedData || storedData.date !== currentDate) {
+            const newAdvice = await generateAdvice();
+            const newData = {
+                advice: newAdvice,
+                date: currentDate,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Store in KV
+            await kv.set('advice', newData);
+            return {
+                advice: newAdvice,
+                timestamp: newData.timestamp
+            };
         }
-
+        
+        // Return stored advice
         return {
-            advice: currentAdvice,
-            timestamp: new Date().toISOString()
+            advice: storedData.advice,
+            timestamp: storedData.timestamp
         };
     } catch (error) {
         console.error('Error in readStorage:', error);
-        // Return a default advice if there's an error
+        // Return default advice if there's an error
         return {
             advice: "Always carry a spare pair of socks. You never know when you'll need to make a quick escape.",
             timestamp: new Date().toISOString()
@@ -81,9 +94,20 @@ export async function readStorage() {
     }
 }
 
-export function writeStorage(data) {
-    // This function is kept for compatibility but doesn't do anything
-    return true;
+export async function writeStorage(data) {
+    try {
+        const currentDate = getCurrentDate();
+        const newData = {
+            advice: data.advice,
+            date: currentDate,
+            timestamp: data.timestamp
+        };
+        await kv.set('advice', newData);
+        return true;
+    } catch (error) {
+        console.error('Error writing storage:', error);
+        return false;
+    }
 }
 
 function isFromToday(timestamp) {

@@ -9,6 +9,7 @@
         "deploy": "vercel --prod"
     },
     "dependencies": {
+        "@vercel/kv": "^3.0.0",
         "@vercel/node": "^2.15.8",
         "dotenv": "^16.5.0",
         "express": "^5.1.0",

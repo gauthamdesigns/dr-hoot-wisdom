@@ -1,4 +1,4 @@
-import { readStorage } from './advice-storage.js';
+import { readStorage, writeStorage } from './advice-storage.js';
 
 // Define preset advice options
 const PRESET_ADVICE = [
