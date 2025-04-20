@@ -1,30 +1,27 @@
 import { readStorage, writeStorage } from './advice-storage.js';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 
 async function generateAdvice() {
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [{
-                    role: "system",
-                    content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
-                }, {
-                    role: "user",
-                    content: "Give me one piece of life advice."
-                }],
-                max_tokens: 50,
-                temperature: 0.8
-            })
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [{
+                role: "system",
+                content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
+            }, {
+                role: "user",
+                content: "Give me one piece of life advice."
+            }],
+            max_tokens: 50,
+            temperature: 0.8
         });
 
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content.trim();
+        if (completion.choices && completion.choices[0]) {
+            return completion.choices[0].message.content.trim();
         }
         throw new Error('No advice generated');
     } catch (error) {
