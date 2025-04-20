@@ -2,20 +2,25 @@
 class AdviceStorage {
     constructor() {
         this.currentAdvice = null;
+        this.lastUpdateTime = null;
     }
 
-    async getAdvice() {
+    async getStoredAdvice() {
         try {
-            const response = await fetch('/api/daily-advice');
+            const response = await fetch('/api/stored-advice');
+            if (!response.ok) {
+                throw new Error('Failed to fetch stored advice');
+            }
             const data = await response.json();
             if (data.advice) {
                 this.currentAdvice = data.advice;
-                return this.currentAdvice;
+                this.lastUpdateTime = data.lastUpdated;
+                return { advice: this.currentAdvice, lastUpdated: this.lastUpdateTime };
             }
-            throw new Error('No advice received');
+            throw new Error('No stored advice available');
         } catch (error) {
-            console.error('Error getting advice:', error);
-            return this.getBackupAdvice();
+            console.error('Error getting stored advice:', error);
+            return { advice: this.getBackupAdvice(), lastUpdated: null };
         }
     }
 
@@ -60,14 +65,19 @@ function updateTimeAndTheme() {
 // Update advice display
 async function updateAdviceDisplay() {
     try {
-        const response = await fetch('/api/get-advice');
-        const data = await response.json();
+        const { advice, lastUpdated } = await adviceStorage.getStoredAdvice();
         const adviceText = document.getElementById('adviceText');
-        if (adviceText && data.advice) {
-            adviceText.textContent = data.advice;
+        const updateTime = document.getElementById('updateTime');
+        
+        if (adviceText) {
+            adviceText.textContent = advice;
+        }
+        
+        if (updateTime && lastUpdated) {
+            updateTime.textContent = `Last updated: ${lastUpdated}`;
         }
     } catch (error) {
-        console.error('Error fetching advice:', error);
+        console.error('Error updating advice display:', error);
     }
 }
 
@@ -139,4 +149,7 @@ function checkAndUpdateAdvice() {
 }
 
 // TODO: Add OpenAI API integration for daily advice updates
-// This will be implemented later when we have the API key 
+// This will be implemented later when we have the API key
+
+// Use a single storage location and format
+const STORAGE_PATH = path.join(process.cwd(), 'data', 'advice.json'); 

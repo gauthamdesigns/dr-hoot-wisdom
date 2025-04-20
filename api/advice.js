@@ -39,44 +39,27 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Try to generate new advice
-        let advice;
-        let retryCount = 0;
-        const maxRetries = 2;
-
-        while (retryCount < maxRetries) {
-            try {
-                advice = await generateAdvice();
-                break;
-            } catch (error) {
-                retryCount++;
-                if (retryCount === maxRetries) {
-                    throw error;
-                }
-                // Wait 1 second before retrying
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+        // First check if we have stored advice
+        const stored = readStorage();
+        if (stored.advice) {
+            return res.status(200).json(stored);
         }
 
-        // Store the new advice with timestamp
-        const success = writeStorage({
-            advice,
-            timestamp: new Date().toISOString()
-        });
+        // If no stored advice, generate new advice
+        const advice = await generateAdvice();
+        const timestamp = new Date().toISOString();
 
+        // Store the new advice
+        const success = writeStorage({ advice, timestamp });
         if (!success) {
             throw new Error('Failed to store advice');
         }
 
-        return res.status(200).json({
-            success: true,
-            advice,
-            timestamp: new Date().toISOString()
-        });
+        return res.status(200).json({ advice, timestamp });
     } catch (error) {
-        console.error('Error updating advice:', error);
-        return res.status(500).json({
-            error: 'Failed to update advice',
+        console.error('Error:', error);
+        return res.status(500).json({ 
+            error: 'Failed to fetch advice',
             message: error.message
         });
     }
