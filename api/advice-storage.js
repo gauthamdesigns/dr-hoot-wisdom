@@ -12,42 +12,44 @@ const PRESET_ADVICE = [
     "Remember: the early bird gets the worm, but the second mouse gets the cheese."
 ];
 
+// Get current date in YYYY-MM-DD format
+function getCurrentDate() {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+}
+
 export function readStorage() {
     try {
-        // Create data directory if it doesn't exist
-        const dir = path.dirname(STORAGE_PATH);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-
-        // If file doesn't exist, create it with initial data
-        if (!fs.existsSync(STORAGE_PATH)) {
-            const initialData = {
-                advice: PRESET_ADVICE[0],
-                timestamp: new Date().toISOString()
-            };
-            fs.writeFileSync(STORAGE_PATH, JSON.stringify(initialData, null, 2));
-            return initialData;
-        }
-
-        // Read and parse existing data
-        const data = JSON.parse(fs.readFileSync(STORAGE_PATH, 'utf8'));
+        // Get current date
+        const currentDate = getCurrentDate();
         
-        // If data is from a different day, update it
-        if (!isFromToday(data.timestamp)) {
+        // Get stored date and advice from environment variables
+        const storedDate = process.env.ADVICE_DATE;
+        const storedAdvice = process.env.CURRENT_ADVICE;
+        
+        // If no stored data or date is different, generate new advice
+        if (!storedDate || storedDate !== currentDate || !storedAdvice) {
             const randomIndex = Math.floor(Math.random() * PRESET_ADVICE.length);
-            const newData = {
-                advice: PRESET_ADVICE[randomIndex],
+            const newAdvice = PRESET_ADVICE[randomIndex];
+            
+            // Update environment variables
+            process.env.ADVICE_DATE = currentDate;
+            process.env.CURRENT_ADVICE = newAdvice;
+            
+            return {
+                advice: newAdvice,
                 timestamp: new Date().toISOString()
             };
-            fs.writeFileSync(STORAGE_PATH, JSON.stringify(newData, null, 2));
-            return newData;
         }
-
-        return data;
+        
+        // Return stored advice
+        return {
+            advice: storedAdvice,
+            timestamp: new Date().toISOString()
+        };
     } catch (error) {
         console.error('Error reading storage:', error);
-        // Return a default advice if there's an error
+        // Return default advice if there's an error
         return {
             advice: PRESET_ADVICE[0],
             timestamp: new Date().toISOString()
@@ -57,11 +59,9 @@ export function readStorage() {
 
 export function writeStorage(data) {
     try {
-        const dir = path.dirname(STORAGE_PATH);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        fs.writeFileSync(STORAGE_PATH, JSON.stringify(data, null, 2));
+        // Update environment variables
+        process.env.ADVICE_DATE = getCurrentDate();
+        process.env.CURRENT_ADVICE = data.advice;
         return true;
     } catch (error) {
         console.error('Error writing storage:', error);
