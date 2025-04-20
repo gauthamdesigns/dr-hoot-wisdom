@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Get your daily dose of nonsensical wisdom from Dr. Hoot">
+    <meta name="keywords" content="daily wisdom, life advice, humor, owl, Dr. Hoot">
+    <title>Dr. Hoot's Daily Wisdom</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <main class="advice-container">
+            <div class="time" id="currentTime">10:12:00 PM</div>
+            <div class="update-time">New advice everyday at 2AM</div>
+            <div class="owl-container">
+                <img src="images/Dr.Hoot Awake.png" alt="Wise Owl" class="owl-image" id="owlImage" onerror="this.onerror=null; this.src='images/Dr.hoot asleep.png';">
+            </div>
+            <div class="advice-content">
+                <h1 class="advice-title">Today's Nonsensical Advice</h1>
+                <p class="advice-text" id="adviceText">"Your soulmate is probably in your spam folder"</p>
+            </div>
+            <button class="share-button" id="shareButton">
+                Share
+            </button>
+        </main>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html> 

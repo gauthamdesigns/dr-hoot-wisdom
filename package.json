@@ -1,0 +1,16 @@
+{
+    "name": "dr-hoot-wisdom",
+    "version": "1.0.0",
+    "description": "Dr. Hoot's Daily Wisdom - Nonsensical life advice generator",
+    "type": "module",
+    "main": "index.html",
+    "scripts": {
+        "start": "vercel dev",
+        "deploy": "vercel --prod"
+    },
+    "dependencies": {
+        "@vercel/node": "^2.15.8",
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0"
+    }
+}
