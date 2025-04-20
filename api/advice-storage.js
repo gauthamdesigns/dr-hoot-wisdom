@@ -1,120 +1,31 @@
-import OpenAI from 'openai';
-import { kv } from '@vercel/kv';
+import fs from 'fs';
+import path from 'path';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+const STORAGE_PATH = path.join(process.cwd(), 'data', 'advice.json');
 
-// Cache for the current day's advice
-let currentAdvice = null;
-let lastUpdateDate = null;
-
-// Define the single piece of advice
-const STORED_ADVICE = "Always carry a spare pair of socks. You never know when you'll need to make a quick escape.";
-
-// Global cache object
-const cache = {
-    advice: null,
-    timestamp: null,
-    date: null
-};
-
-// Get current date in YYYY-MM-DD format
-function getCurrentDate() {
-    return new Date().toISOString().split('T')[0];
-}
-
-async function generateAdvice() {
+export function readStorage() {
     try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [{
-                role: "system",
-                content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
-            }, {
-                role: "user",
-                content: "Give me one piece of life advice."
-            }],
-            max_tokens: 50,
-            temperature: 0.8
-        });
-
-        if (completion.choices && completion.choices[0]) {
-            return completion.choices[0].message.content.trim();
+        if (!fs.existsSync(STORAGE_PATH)) {
+            return { advice: null, timestamp: null };
         }
-        throw new Error('No advice generated');
+        const data = fs.readFileSync(STORAGE_PATH, 'utf8');
+        return JSON.parse(data);
     } catch (error) {
-        console.error('Error generating advice:', error);
-        throw error;
+        console.error('Error reading storage:', error);
+        return { advice: null, timestamp: null };
     }
 }
 
-function isNewDay() {
-    if (!lastUpdateDate) return true;
-    const today = new Date().toISOString().split('T')[0];
-    return lastUpdateDate !== today;
-}
-
-export async function readStorage() {
+export function writeStorage(data) {
     try {
-        const currentDate = getCurrentDate();
-        
-        // Get stored data from KV
-        const storedData = await kv.get('advice');
-        
-        // If no data or date is different, generate new advice
-        if (!storedData || storedData.date !== currentDate) {
-            const newAdvice = await generateAdvice();
-            const newData = {
-                advice: newAdvice,
-                date: currentDate,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Store in KV
-            await kv.set('advice', newData);
-            return {
-                advice: newAdvice,
-                timestamp: newData.timestamp
-            };
+        const dir = path.dirname(STORAGE_PATH);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
         }
-        
-        // Return stored advice
-        return {
-            advice: storedData.advice,
-            timestamp: storedData.timestamp
-        };
-    } catch (error) {
-        console.error('Error in readStorage:', error);
-        // Return default advice if there's an error
-        return {
-            advice: "Always carry a spare pair of socks. You never know when you'll need to make a quick escape.",
-            timestamp: new Date().toISOString()
-        };
-    }
-}
-
-export async function writeStorage(data) {
-    try {
-        const currentDate = getCurrentDate();
-        const newData = {
-            advice: data.advice,
-            date: currentDate,
-            timestamp: data.timestamp
-        };
-        await kv.set('advice', newData);
+        fs.writeFileSync(STORAGE_PATH, JSON.stringify(data, null, 2));
         return true;
     } catch (error) {
         console.error('Error writing storage:', error);
         return false;
     }
-}
-
-function isFromToday(timestamp) {
-    if (!timestamp) return false;
-    const storedDate = new Date(timestamp);
-    const today = new Date();
-    return storedDate.getDate() === today.getDate() &&
-           storedDate.getMonth() === today.getMonth() &&
-           storedDate.getFullYear() === today.getFullYear();
 } 
