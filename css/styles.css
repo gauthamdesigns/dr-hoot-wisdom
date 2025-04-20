@@ -105,14 +105,15 @@ body.night-mode .time {
     font-family: 'Poppins', sans-serif;
     opacity: 0.8;
     transition: color var(--transition-duration) ease;
-}
-
-body.day-mode .update-time {
     color: var(--day-text);
 }
 
 body.night-mode .update-time {
     color: var(--night-text);
+}
+
+body.day-mode .update-time {
+    color: var(--day-text);
 }
 
 .owl-container {
