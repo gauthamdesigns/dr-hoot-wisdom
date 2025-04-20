@@ -187,4 +187,18 @@ body.night-mode .owl-image {
         padding: 0.8rem 2rem;
         font-size: 1rem;
     }
+}
+
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 1rem;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
 } 

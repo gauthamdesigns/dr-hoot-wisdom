@@ -1,14 +1,12 @@
-export default async function handler(request, response) {
-    if (request.method !== 'GET') {
-        return response.status(405).json({ error: 'Method not allowed' });
-    }
+import config from '../js/config.js';
 
+export async function generateAdvice() {
     try {
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                'Authorization': `Bearer ${config.openaiApiKey}`
             },
             body: JSON.stringify({
                 model: "gpt-3.5-turbo",
@@ -24,20 +22,26 @@ export default async function handler(request, response) {
             })
         });
 
-        const data = await openaiResponse.json();
+        const data = await response.json();
         
-        if (data.choices && data.choices[0]) {
-            return response.status(200).json({
-                advice: data.choices[0].message.content.trim()
-            });
+        if (!data.choices?.[0]?.message?.content) {
+            throw new Error('No advice generated');
         }
-        
-        throw new Error('No advice generated');
+
+        return data.choices[0].message.content.trim();
     } catch (error) {
         console.error('Error generating advice:', error);
-        return response.status(500).json({
-            error: 'Failed to generate advice',
-            message: error.message
-        });
+        return getBackupAdvice();
     }
+}
+
+function getBackupAdvice() {
+    const backupAdvices = [
+        "Life is like a sandwich - the bread comes first",
+        "Dance like nobody is watching your browser history",
+        "If you can't convince them, confuse them",
+        "Be yourself, everyone else is already taken",
+        "Don't take life too seriously, you won't get out alive"
+    ];
+    return backupAdvices[Math.floor(Math.random() * backupAdvices.length)];
 } 

@@ -41,28 +41,19 @@ function updateTimeAndTheme() {
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
     
-    // More gradual theme transition
-    // Day: 6 AM - 6 PM
-    // Night: 6 PM - 6 AM
-    // With smooth transitions during sunrise/sunset hours
+    // Day: 6 AM - 6 PM, Night: 6 PM - 6 AM
     const isNight = hour >= 18 || hour < 6;
     const isTransition = (hour >= 17 && hour < 18) || (hour >= 5 && hour < 6);
     
-    // Update theme with smooth transitions
+    // Update theme and transitions
     document.body.classList.toggle('night-mode', isNight);
     document.body.classList.toggle('day-mode', !isNight);
-    
-    // Add transition class during sunrise/sunset
     document.body.classList.toggle('theme-transition', isTransition);
     
-    // Update owl image based on time
+    // Update owl image
     const owlImage = document.getElementById('owlImage');
     if (owlImage) {
-        if (!isNight) {
-            owlImage.src = 'images/Dr.hoot asleep.png';
-        } else {
-            owlImage.src = 'images/Dr.Hoot Awake.png';
-        }
+        owlImage.src = isNight ? 'images/Dr.Hoot Awake.png' : 'images/Dr.hoot asleep.png';
     }
     
     // Update time display
@@ -70,16 +61,14 @@ function updateTimeAndTheme() {
     if (timeDisplay) {
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const hour12 = hour % 12 || 12;
-        const minutesStr = minutes.toString().padStart(2, '0');
-        const secondsStr = seconds.toString().padStart(2, '0');
-        timeDisplay.textContent = `${hour12}:${minutesStr}:${secondsStr} ${ampm}`;
+        timeDisplay.textContent = `${hour12}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
     }
 }
 
 // Update advice display
 async function updateAdviceDisplay() {
     try {
-        const response = await fetch('/api/get-advice');
+        const response = await fetch('/api/daily-advice');
         const data = await response.json();
         const adviceText = document.getElementById('adviceText');
         if (adviceText && data.advice) {
@@ -94,20 +83,7 @@ async function updateAdviceDisplay() {
 function showToast(message) {
     const toast = document.createElement('div');
     toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-size: 1rem;
-        z-index: 1000;
-        transition: opacity 0.3s ease;
-    `;
-    
+    toast.className = 'toast-message';
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -118,36 +94,30 @@ function showToast(message) {
 
 async function shareContent() {
     const adviceText = document.getElementById('adviceText');
-    const text = adviceText.textContent;
-    const textWithCredit = `${text}\n@Dr. Hoot`;
+    const text = `${adviceText.textContent}\n@Dr. Hoot`;
     
     try {
-        await navigator.clipboard.writeText(textWithCredit);
+        await navigator.clipboard.writeText(text);
         showToast('Advice copied to clipboard! 📋');
         
         const shareButton = document.getElementById('shareButton');
-        const originalText = shareButton.textContent;
         shareButton.textContent = 'Copied!';
-        setTimeout(() => {
-            shareButton.textContent = originalText;
-        }, 2000);
+        setTimeout(() => shareButton.textContent = 'Share', 2000);
     } catch (err) {
         showToast('Failed to copy text. Please try again.');
     }
 }
 
-// Initialize everything when the page loads
+// Initialize
 window.onload = function() {
-    // Update time immediately and set interval
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
-    
-    // Display current advice
     updateAdviceDisplay();
     
-    // Set up share button
     const shareButton = document.getElementById('shareButton');
-    shareButton.addEventListener('click', shareContent);
+    if (shareButton) {
+        shareButton.addEventListener('click', shareContent);
+    }
 };
 
 // Check and update advice
