@@ -1,4 +1,4 @@
-import { readStorage, writeStorage } from './advice-storage.js';
+import { readStorage } from './advice-storage.js';
 
 // Define preset advice options
 const PRESET_ADVICE = [
@@ -14,28 +14,10 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    try {
-        // Get a random preset advice
-        const randomIndex = Math.floor(Math.random() * PRESET_ADVICE.length);
-        const advice = PRESET_ADVICE[randomIndex];
-        const timestamp = new Date().toISOString();
-
-        // Store the new advice
-        const success = writeStorage({ advice, timestamp });
-        if (!success) {
-            throw new Error('Failed to store advice');
-        }
-
-        return res.status(200).json({
-            success: true,
-            advice,
-            timestamp
-        });
-    } catch (error) {
-        console.error('Error updating advice:', error);
-        return res.status(500).json({
-            error: 'Failed to update advice',
-            message: error.message
-        });
-    }
+    // Simply return the stored advice
+    const stored = readStorage();
+    return res.status(200).json({
+        success: true,
+        ...stored
+    });
 } 
