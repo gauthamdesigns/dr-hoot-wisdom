@@ -74,10 +74,17 @@ body.night-mode .share-button {
 
 .update-time {
     font-size: 0.9rem;
-    color: #FFFFFF;
     margin-bottom: 1rem;
     font-family: 'Poppins', sans-serif;
     opacity: 0.8;
+}
+
+body.day-mode .update-time {
+    color: var(--day-text);
+}
+
+body.night-mode .update-time {
+    color: var(--night-text);
 }
 
 .owl-container {
