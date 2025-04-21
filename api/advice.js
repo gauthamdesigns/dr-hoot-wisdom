@@ -6,32 +6,47 @@ const CSV_PATH = path.join(process.cwd(), 'data', 'advice.csv');
 
 function getAdviceFromCSV() {
     try {
+        // Read and parse CSV
         const csvContent = fs.readFileSync(CSV_PATH, 'utf8');
+        console.log('CSV Content:', csvContent.substring(0, 200) + '...'); // Log first 200 chars
+        
         const records = parse(csvContent, {
             columns: true,
             skip_empty_lines: true
         });
+        console.log('Total records:', records.length);
         
         // Get today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split('T')[0];
-        console.log('Looking for advice for date:', today);
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        console.log('Current date:', today);
+        console.log('Current time:', now.toISOString());
+        
+        // Log first few records to verify format
+        console.log('First few records:', records.slice(0, 3));
         
         // Find exact match for today
-        const adviceForToday = records.find(record => record.date === today);
-        console.log('Found advice for today:', adviceForToday);
+        const adviceForToday = records.find(record => {
+            console.log('Comparing:', record.date, 'with', today);
+            return record.date === today;
+        });
         
         if (adviceForToday) {
+            console.log('Found exact match for today:', adviceForToday);
             return adviceForToday.advice;
         }
         
         // If no advice for today, find the closest future date
         const futureAdvice = records
-            .filter(record => record.date > today)
+            .filter(record => {
+                const recordDate = new Date(record.date);
+                const todayDate = new Date(today);
+                return recordDate > todayDate;
+            })
             .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
         
-        console.log('Found future advice:', futureAdvice);
-        
         if (futureAdvice) {
+            console.log('Found future advice:', futureAdvice);
             return futureAdvice.advice;
         }
         

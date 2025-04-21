@@ -5,12 +5,17 @@ const shareButton = document.getElementById('shareButton');
 
 async function fetchAdvice() {
     try {
-        const response = await fetch('/api/advice');
+        // Add cache-busting parameter
+        const response = await fetch(`/api/advice?t=${Date.now()}`);
         if (!response.ok) {
             throw new Error('Failed to fetch advice');
         }
         const data = await response.json();
-        console.log('Received advice:', data);
+        console.log('Received advice data:', {
+            advice: data.advice,
+            timestamp: data.timestamp,
+            currentTime: new Date().toISOString()
+        });
         
         // Always update the advice and timestamp
         currentAdvice = data.advice;
@@ -28,8 +33,12 @@ function checkForNewDay() {
     const currentDate = now.toISOString().split('T')[0];
     const lastFetchDate = lastFetchTime ? lastFetchTime.toISOString().split('T')[0] : null;
     
-    console.log('Current date:', currentDate);
-    console.log('Last fetch date:', lastFetchDate);
+    console.log('Date check:', {
+        currentDate,
+        lastFetchDate,
+        currentTime: now.toISOString(),
+        lastFetchTime: lastFetchTime ? lastFetchTime.toISOString() : null
+    });
     
     // Only fetch new advice if we're on a different day
     if (lastFetchDate !== currentDate) {
