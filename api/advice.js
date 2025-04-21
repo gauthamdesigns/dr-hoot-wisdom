@@ -1,4 +1,3 @@
-import { readStorage, writeStorage } from './advice-storage.js';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -43,28 +42,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // First check if we have stored advice
-        const stored = readStorage();
-        const today = new Date().toISOString().split('T')[0];
-        
-        // If we have stored advice and it's from today, return it
-        if (stored.advice && stored.timestamp && stored.timestamp.startsWith(today)) {
-            return res.status(200).json({
-                advice: stored.advice,
-                timestamp: stored.timestamp,
-                isCached: true
-            });
-        }
-
-        // If no stored advice or it's from a different day, get advice from CSV
         const advice = getAdviceFromCSV();
         const timestamp = new Date().toISOString();
-
-        // Store the new advice
-        const success = writeStorage({ advice, timestamp });
-        if (!success) {
-            throw new Error('Failed to store advice');
-        }
 
         return res.status(200).json({ 
             advice, 

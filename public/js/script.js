@@ -1,3 +1,8 @@
+let currentAdvice = null;
+let lastFetchTime = null;
+const adviceElement = document.getElementById('adviceText');
+const shareButton = document.getElementById('shareButton');
+
 async function fetchAdvice() {
     try {
         const response = await fetch('/api/advice');
@@ -6,22 +11,17 @@ async function fetchAdvice() {
         }
         const data = await response.json();
         
-        // Only update the advice if it's not cached or if we don't have any advice yet
-        if (!data.isCached || !currentAdvice) {
-            currentAdvice = data.advice;
-            adviceElement.textContent = currentAdvice;
-            updateShareButton();
-        }
-        
-        // Update the timestamp regardless
+        // Always update the advice and timestamp
+        currentAdvice = data.advice;
+        adviceElement.textContent = currentAdvice;
         lastFetchTime = new Date(data.timestamp);
+        updateShareButton();
     } catch (error) {
         console.error('Error fetching advice:', error);
         adviceElement.textContent = "If at first you don't succeed, blame it on the WiFi";
     }
 }
 
-// Update the checkForNewDay function to be more precise
 function checkForNewDay() {
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0];
@@ -31,4 +31,21 @@ function checkForNewDay() {
     if (lastFetchDate !== currentDate) {
         fetchAdvice();
     }
-} 
+}
+
+function updateShareButton() {
+    if (currentAdvice) {
+        shareButton.onclick = () => {
+            const shareText = `${currentAdvice} - Dr. Hoot's Daily Wisdom`;
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert('Advice copied to clipboard!');
+            });
+        };
+    }
+}
+
+// Initial fetch
+fetchAdvice();
+
+// Check for new day every minute
+setInterval(checkForNewDay, 60000); 
