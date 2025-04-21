@@ -11,13 +11,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="day-mode">
-    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
-        <i class="fas fa-sun"></i>
-        <i class="fas fa-moon"></i>
-    </button>
     <div class="container">
         <main class="advice-container">
-            <div class="time" id="currentTime">10:12:00 PM</div>
+            <div class="time-container">
+                <div class="time" id="currentTime">10:12:00 PM</div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
             <div class="update-time">New advice everyday at 2AM</div>
             <div class="owl-container">
                 <img src="images/Dr.hoot asleep.png" alt="Sleeping Owl" class="owl-image day-owl" id="dayOwl">

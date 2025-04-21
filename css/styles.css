@@ -64,10 +64,18 @@ body.night-mode .share-button {
     gap: 2rem;
 }
 
+.time-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
 .time {
     font-size: 1.2rem;
     font-weight: 500;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
     font-family: 'Courier New', monospace;
     letter-spacing: 1px;
 }
@@ -163,11 +171,8 @@ body.night-mode .update-time {
 
 /* Theme Toggle Button */
 .theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: none;
     background: transparent;
@@ -177,11 +182,11 @@ body.night-mode .update-time {
     justify-content: center;
     padding: 0;
     transition: transform 0.3s ease;
-    z-index: 1000;
+    position: relative;
 }
 
 .theme-toggle i {
-    font-size: 20px;
+    font-size: 16px;
     position: absolute;
     transition: opacity 0.3s ease;
 }
