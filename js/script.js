@@ -1,3 +1,17 @@
+// Theme management
+function toggleTheme() {
+    const body = document.body;
+    const isNight = body.classList.contains('night-mode');
+    
+    if (isNight) {
+        body.classList.remove('night-mode');
+        body.classList.add('day-mode');
+    } else {
+        body.classList.remove('day-mode');
+        body.classList.add('night-mode');
+    }
+}
+
 // Time and theme management
 function updateTimeAndTheme() {
     const now = new Date();
@@ -6,9 +20,15 @@ function updateTimeAndTheme() {
     const seconds = now.getSeconds();
     const isNight = hour >= 18 || hour < 6;
     
-    // Update theme
-    document.body.classList.toggle('night-mode', isNight);
-    document.body.classList.toggle('day-mode', !isNight);
+    // Update theme based on time
+    const body = document.body;
+    if (isNight) {
+        body.classList.remove('day-mode');
+        body.classList.add('night-mode');
+    } else {
+        body.classList.remove('night-mode');
+        body.classList.add('day-mode');
+    }
     
     // Update time display
     const timeDisplay = document.getElementById('currentTime');
@@ -95,6 +115,10 @@ function checkForNewDay() {
 
 // Initialize everything when the page loads
 window.onload = function() {
+    // Set up theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', toggleTheme);
+    
     // Update time immediately and set interval
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
