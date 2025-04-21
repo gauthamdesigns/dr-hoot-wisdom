@@ -2,6 +2,29 @@ let currentAdvice = null;
 let lastFetchTime = null;
 const adviceElement = document.getElementById('adviceText');
 const shareButton = document.getElementById('shareButton');
+const timeElement = document.getElementById('currentTime');
+const body = document.body;
+
+// Update time and theme
+function updateTimeAndTheme() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    
+    timeElement.textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
+    
+    // Update theme based on time
+    if (hours >= 6 && hours < 18) {
+        body.classList.remove('night-mode');
+        body.classList.add('day-mode');
+    } else {
+        body.classList.remove('day-mode');
+        body.classList.add('night-mode');
+    }
+}
 
 async function fetchAdvice() {
     try {
@@ -58,8 +81,12 @@ function updateShareButton() {
     }
 }
 
-// Initial fetch
+// Initial setup
+updateTimeAndTheme();
 fetchAdvice();
+
+// Update time and theme every second
+setInterval(updateTimeAndTheme, 1000);
 
 // Check for new day every minute
 setInterval(checkForNewDay, 60000); 
