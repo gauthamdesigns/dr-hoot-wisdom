@@ -6,9 +6,11 @@ function toggleTheme() {
     if (isNight) {
         body.classList.remove('night-mode');
         body.classList.add('day-mode');
+        localStorage.setItem('themePreference', 'day');
     } else {
         body.classList.remove('day-mode');
         body.classList.add('night-mode');
+        localStorage.setItem('themePreference', 'night');
     }
 }
 
@@ -20,14 +22,28 @@ function updateTimeAndTheme() {
     const seconds = now.getSeconds();
     const isNight = hour >= 18 || hour < 6;
     
-    // Update theme based on time
+    // Check for user preference first
+    const userPreference = localStorage.getItem('themePreference');
     const body = document.body;
-    if (isNight) {
-        body.classList.remove('day-mode');
-        body.classList.add('night-mode');
+    
+    if (userPreference) {
+        // Apply user preference
+        if (userPreference === 'night') {
+            body.classList.remove('day-mode');
+            body.classList.add('night-mode');
+        } else {
+            body.classList.remove('night-mode');
+            body.classList.add('day-mode');
+        }
     } else {
-        body.classList.remove('night-mode');
-        body.classList.add('day-mode');
+        // Apply automatic theme based on time
+        if (isNight) {
+            body.classList.remove('day-mode');
+            body.classList.add('night-mode');
+        } else {
+            body.classList.remove('night-mode');
+            body.classList.add('day-mode');
+        }
     }
     
     // Update time display
@@ -119,7 +135,7 @@ window.onload = function() {
     const themeToggle = document.getElementById('themeToggle');
     themeToggle.addEventListener('click', toggleTheme);
     
-    // Update time immediately and set interval
+    // Apply initial theme based on user preference or time
     updateTimeAndTheme();
     setInterval(updateTimeAndTheme, 1000);
     
