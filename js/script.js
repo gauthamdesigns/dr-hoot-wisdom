@@ -120,10 +120,13 @@ async function shareContent() {
 // Check for new day and update advice
 function checkForNewDay() {
     const now = new Date();
-    const currentDate = now.toISOString().split('T')[0];
+    const currentDate = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    // Get the last fetch date from localStorage
     const lastFetchDate = localStorage.getItem('lastAdviceDate');
     
-    if (lastFetchDate !== currentDate) {
+    // Check if it's a new day (after midnight) or if we haven't fetched advice yet
+    if (!lastFetchDate || lastFetchDate !== currentDate) {
         updateAdviceDisplay();
         localStorage.setItem('lastAdviceDate', currentDate);
     }
