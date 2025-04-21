@@ -20,8 +20,17 @@ function getAdviceFromCSV() {
             return adviceForToday.advice;
         }
         
-        // If no advice for today, return the first advice in the list
-        return records[0].advice;
+        // If no advice for today, find the closest future date
+        const futureAdvice = records
+            .filter(record => record.date > today)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+        
+        if (futureAdvice) {
+            return futureAdvice.advice;
+        }
+        
+        // If no future advice, return the last advice in the list
+        return records[records.length - 1].advice;
     } catch (error) {
         console.error('Error reading CSV:', error);
         return "If at first you don't succeed, blame it on the WiFi"; // Fallback advice
@@ -40,7 +49,11 @@ export default async function handler(req, res) {
         
         // If we have stored advice and it's from today, return it
         if (stored.advice && stored.timestamp && stored.timestamp.startsWith(today)) {
-            return res.status(200).json(stored);
+            return res.status(200).json({
+                advice: stored.advice,
+                timestamp: stored.timestamp,
+                isCached: true
+            });
         }
 
         // If no stored advice or it's from a different day, get advice from CSV
@@ -53,7 +66,11 @@ export default async function handler(req, res) {
             throw new Error('Failed to store advice');
         }
 
-        return res.status(200).json({ advice, timestamp });
+        return res.status(200).json({ 
+            advice, 
+            timestamp,
+            isCached: false
+        });
     } catch (error) {
         console.error('Error:', error);
         return res.status(500).json({ 

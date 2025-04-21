@@ -20,8 +20,17 @@ function getAdviceFromCSV() {
             return adviceForToday.advice;
         }
         
-        // If no advice for today, return the first advice in the list
-        return records[0].advice;
+        // If no advice for today, find the closest future date
+        const futureAdvice = records
+            .filter(record => record.date > today)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+        
+        if (futureAdvice) {
+            return futureAdvice.advice;
+        }
+        
+        // If no future advice, return the last advice in the list
+        return records[records.length - 1].advice;
     } catch (error) {
         console.error('Error reading CSV:', error);
         return "If at first you don't succeed, blame it on the WiFi"; // Fallback advice
