@@ -1,39 +1,3 @@
-// Simple advice storage class
-class AdviceStorage {
-    constructor() {
-        this.currentAdvice = null;
-    }
-
-    async getAdvice() {
-        try {
-            const response = await fetch('/api/daily-advice');
-            const data = await response.json();
-            if (data.advice) {
-                this.currentAdvice = data.advice;
-                return this.currentAdvice;
-            }
-            throw new Error('No advice received');
-        } catch (error) {
-            console.error('Error getting advice:', error);
-            return this.getBackupAdvice();
-        }
-    }
-
-    getBackupAdvice() {
-        const backupAdvice = [
-            "Your soulmate is probably in your spam folder",
-            "If plan A fails, the alphabet has 25 more letters",
-            "When life gives you lemons, ask for a gift receipt",
-            "Dance like your internet connection just came back",
-            "The early bird gets the worm, but the second mouse gets the cheese"
-        ];
-        return backupAdvice[Math.floor(Math.random() * backupAdvice.length)];
-    }
-}
-
-// Initialize advice storage
-const adviceStorage = new AdviceStorage();
-
 // Time and theme management
 function updateTimeAndTheme() {
     const now = new Date();
@@ -117,6 +81,18 @@ async function shareContent() {
     }
 }
 
+// Check for new day and update advice
+function checkForNewDay() {
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const lastFetchDate = localStorage.getItem('lastAdviceDate');
+    
+    if (lastFetchDate !== currentDate) {
+        updateAdviceDisplay();
+        localStorage.setItem('lastAdviceDate', currentDate);
+    }
+}
+
 // Initialize everything when the page loads
 window.onload = function() {
     // Update time immediately and set interval
@@ -129,14 +105,7 @@ window.onload = function() {
     // Set up share button
     const shareButton = document.getElementById('shareButton');
     shareButton.addEventListener('click', shareContent);
-};
-
-// Check and update advice
-function checkAndUpdateAdvice() {
-    if (adviceStorage.isNewDay()) {
-        updateAdvice();
-    }
-}
-
-// TODO: Add OpenAI API integration for daily advice updates
-// This will be implemented later when we have the API key 
+    
+    // Check for new day every minute
+    setInterval(checkForNewDay, 60000);
+}; 
