@@ -10,6 +10,7 @@ async function fetchAdvice() {
             throw new Error('Failed to fetch advice');
         }
         const data = await response.json();
+        console.log('Received advice:', data);
         
         // Always update the advice and timestamp
         currentAdvice = data.advice;
@@ -27,8 +28,12 @@ function checkForNewDay() {
     const currentDate = now.toISOString().split('T')[0];
     const lastFetchDate = lastFetchTime ? lastFetchTime.toISOString().split('T')[0] : null;
     
+    console.log('Current date:', currentDate);
+    console.log('Last fetch date:', lastFetchDate);
+    
     // Only fetch new advice if we're on a different day
     if (lastFetchDate !== currentDate) {
+        console.log('Fetching new advice for new day');
         fetchAdvice();
     }
 }

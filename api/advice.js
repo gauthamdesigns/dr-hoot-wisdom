@@ -12,8 +12,13 @@ function getAdviceFromCSV() {
             skip_empty_lines: true
         });
         
+        // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
+        console.log('Looking for advice for date:', today);
+        
+        // Find exact match for today
         const adviceForToday = records.find(record => record.date === today);
+        console.log('Found advice for today:', adviceForToday);
         
         if (adviceForToday) {
             return adviceForToday.advice;
@@ -24,15 +29,19 @@ function getAdviceFromCSV() {
             .filter(record => record.date > today)
             .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
         
+        console.log('Found future advice:', futureAdvice);
+        
         if (futureAdvice) {
             return futureAdvice.advice;
         }
         
         // If no future advice, return the last advice in the list
-        return records[records.length - 1].advice;
+        const lastAdvice = records[records.length - 1];
+        console.log('Using last advice:', lastAdvice);
+        return lastAdvice.advice;
     } catch (error) {
         console.error('Error reading CSV:', error);
-        return "If at first you don't succeed, blame it on the WiFi"; // Fallback advice
+        return "If at first you don't succeed, blame it on the WiFi";
     }
 }
 
