@@ -1,35 +1,30 @@
 import { readStorage, writeStorage } from './advice-storage.js';
+import fs from 'fs';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
 
-async function generateAdvice() {
+const CSV_PATH = path.join(process.cwd(), 'data', 'advice.csv');
+
+function getAdviceFromCSV() {
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: [{
-                    role: "system",
-                    content: "You are Dr. Hoot, a wise but quirky owl who gives nonsensical yet amusing life advice. Your advice should be funny, slightly absurd, but with a tiny grain of wisdom. Keep responses under 100 characters."
-                }, {
-                    role: "user",
-                    content: "Give me one piece of life advice."
-                }],
-                max_tokens: 50,
-                temperature: 0.8
-            })
+        const csvContent = fs.readFileSync(CSV_PATH, 'utf8');
+        const records = parse(csvContent, {
+            columns: true,
+            skip_empty_lines: true
         });
-
-        const data = await response.json();
-        if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content.trim();
+        
+        const today = new Date().toISOString().split('T')[0];
+        const adviceForToday = records.find(record => record.date === today);
+        
+        if (adviceForToday) {
+            return adviceForToday.advice;
         }
-        throw new Error('No advice generated');
+        
+        // If no advice for today, return the first advice in the list
+        return records[0].advice;
     } catch (error) {
-        console.error('Error generating advice:', error);
-        throw error;
+        console.error('Error reading CSV:', error);
+        return "If at first you don't succeed, blame it on the WiFi"; // Fallback advice
     }
 }
 
@@ -41,12 +36,15 @@ export default async function handler(req, res) {
     try {
         // First check if we have stored advice
         const stored = readStorage();
-        if (stored.advice) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // If we have stored advice and it's from today, return it
+        if (stored.advice && stored.timestamp && stored.timestamp.startsWith(today)) {
             return res.status(200).json(stored);
         }
 
-        // If no stored advice, generate new advice
-        const advice = await generateAdvice();
+        // If no stored advice or it's from a different day, get advice from CSV
+        const advice = getAdviceFromCSV();
         const timestamp = new Date().toISOString();
 
         // Store the new advice

@@ -11,11 +11,5 @@
         { "src": "/api/(.*)", "dest": "/api/$1" },
         { "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg))", "dest": "/$1" },
         { "src": "/(.*)", "dest": "/index.html" }
-    ],
-    "crons": [
-        {
-            "path": "/api/update-advice",
-            "schedule": "0 2 * * *"
-        }
     ]
 } 

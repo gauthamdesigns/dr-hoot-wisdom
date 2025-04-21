@@ -12,12 +12,25 @@ class AdviceStorage {
                 throw new Error('Failed to fetch stored advice');
             }
             const data = await response.json();
-            if (data.advice) {
+            
+            // Check if the stored advice is from today
+            const today = new Date().toISOString().split('T')[0];
+            if (data.advice && data.timestamp && data.timestamp.startsWith(today)) {
                 this.currentAdvice = data.advice;
-                this.lastUpdateTime = data.lastUpdated;
+                this.lastUpdateTime = data.timestamp;
                 return { advice: this.currentAdvice, lastUpdated: this.lastUpdateTime };
             }
-            throw new Error('No stored advice available');
+            
+            // If stored advice is not from today, force an update
+            const updateResponse = await fetch('/api/update-advice');
+            if (!updateResponse.ok) {
+                throw new Error('Failed to update advice');
+            }
+            const updateData = await updateResponse.json();
+            
+            this.currentAdvice = updateData.advice;
+            this.lastUpdateTime = updateData.timestamp;
+            return { advice: this.currentAdvice, lastUpdated: this.lastUpdateTime };
         } catch (error) {
             console.error('Error getting stored advice:', error);
             return { advice: this.getBackupAdvice(), lastUpdated: null };
@@ -74,7 +87,8 @@ async function updateAdviceDisplay() {
         }
         
         if (updateTime && lastUpdated) {
-            updateTime.textContent = `Last updated: ${lastUpdated}`;
+            const date = new Date(lastUpdated);
+            updateTime.textContent = `Last updated: ${date.toLocaleString()}`;
         }
     } catch (error) {
         console.error('Error updating advice display:', error);
