@@ -213,4 +213,23 @@ body.night-mode .update-time {
 /* Hover effect */
 .theme-toggle:hover {
     transform: scale(1.1);
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    color: var(--day-text);
+    opacity: 0.7;
+    margin-top: 1rem;
+}
+
+.advice-text:empty + .loading-text {
+    display: block;
+}
+
+.advice-text:not(:empty) + .loading-text {
+    display: none;
+}
+
+body.night-mode .loading-text {
+    color: var(--night-text);
 } 

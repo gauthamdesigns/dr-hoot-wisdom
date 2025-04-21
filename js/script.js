@@ -59,15 +59,28 @@ function updateTimeAndTheme() {
 
 // Update advice display
 async function updateAdviceDisplay() {
+    const adviceText = document.getElementById('adviceText');
+    const loadingText = document.getElementById('loadingText');
+    
     try {
+        // Clear previous advice and show loading
+        adviceText.textContent = '';
+        loadingText.style.display = 'block';
+        
         const response = await fetch('/api/get-advice');
         const data = await response.json();
-        const adviceText = document.getElementById('adviceText');
+        
         if (adviceText && data.advice) {
-            adviceText.textContent = data.advice;
+            // Add a small delay to ensure smooth transition
+            setTimeout(() => {
+                adviceText.textContent = data.advice;
+                loadingText.style.display = 'none';
+            }, 300);
         }
     } catch (error) {
         console.error('Error fetching advice:', error);
+        adviceText.textContent = 'Wisdom takes time... Please refresh the page.';
+        loadingText.style.display = 'none';
     }
 }
 
