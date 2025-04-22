@@ -199,7 +199,7 @@ body.night-mode .update-time {
     color: #E0E0E0;
 }
 
-/* Hide one icon based on theme */
+/* Show/hide icons based on theme */
 .day-mode .theme-toggle .fa-moon,
 .night-mode .theme-toggle .fa-sun {
     opacity: 0;
@@ -210,7 +210,6 @@ body.night-mode .update-time {
     opacity: 1;
 }
 
-/* Hover effect */
 .theme-toggle:hover {
     transform: scale(1.1);
 }
