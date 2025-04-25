@@ -6,11 +6,9 @@ function toggleTheme() {
     if (isNight) {
         body.classList.remove('night-mode');
         body.classList.add('day-mode');
-        localStorage.setItem('themePreference', 'day');
     } else {
         body.classList.remove('day-mode');
         body.classList.add('night-mode');
-        localStorage.setItem('themePreference', 'night');
     }
 }
 
@@ -22,28 +20,15 @@ function updateTimeAndTheme() {
     const seconds = now.getSeconds();
     const isNight = hour >= 18 || hour < 6;
     
-    // Check for user preference first
-    const userPreference = localStorage.getItem('themePreference');
     const body = document.body;
     
-    if (userPreference) {
-        // Apply user preference
-        if (userPreference === 'night') {
-            body.classList.remove('day-mode');
-            body.classList.add('night-mode');
-        } else {
-            body.classList.remove('night-mode');
-            body.classList.add('day-mode');
-        }
+    // Always apply automatic theme based on time
+    if (isNight) {
+        body.classList.remove('day-mode');
+        body.classList.add('night-mode');
     } else {
-        // Apply automatic theme based on time
-        if (isNight) {
-            body.classList.remove('day-mode');
-            body.classList.add('night-mode');
-        } else {
-            body.classList.remove('night-mode');
-            body.classList.add('day-mode');
-        }
+        body.classList.remove('night-mode');
+        body.classList.add('day-mode');
     }
     
     // Update time display
